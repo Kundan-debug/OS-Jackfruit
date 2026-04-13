@@ -121,14 +121,12 @@ static void timer_callback(struct timer_list *t)
     list_for_each_entry_safe(entry, tmp, &monitored_list, list) {
         rss = get_rss_bytes(entry->pid);
 
-        /* process exited */
         if (rss < 0) {
             list_del(&entry->list);
             kfree(entry);
             continue;
         }
 
-        /* soft limit warning */
         if (rss > entry->soft_limit_bytes && !entry->soft_warned) {
             log_soft_limit_event(entry->container_id,
                                  entry->pid,
@@ -137,7 +135,6 @@ static void timer_callback(struct timer_list *t)
             entry->soft_warned = true;
         }
 
-        /* hard limit kill */
         if (rss > entry->hard_limit_bytes) {
             kill_process(entry->container_id,
                          entry->pid,
@@ -219,13 +216,11 @@ static long monitor_ioctl(struct file *f, unsigned int cmd, unsigned long arg)
     return -ENOENT;
 }
 
-/* --- file operations --- */
 static struct file_operations fops = {
     .owner = THIS_MODULE,
     .unlocked_ioctl = monitor_ioctl,
 };
 
-/* --- Module Init --- */
 static int __init monitor_init(void)
 {
     if (alloc_chrdev_region(&dev_num, 0, 1, DEVICE_NAME) < 0)
@@ -264,7 +259,6 @@ static int __init monitor_init(void)
     return 0;
 }
 
-/* --- Module Exit --- */
 static void __exit monitor_exit(void)
 {
     struct monitored_container *entry, *tmp;
